@@ -35,6 +35,7 @@ from flask_restx import Resource
 from flask import request
 from sqlalchemy.exc import IntegrityError
 from flaskr.modelos.modelo import db, Personal, Roles  # Asegúrate de importar Roles correctamente
+from sqlalchemy import func  # 👈 Asegúrate de tener esto 
 
 class VistaSignin(Resource):
     def post(self):
@@ -57,7 +58,7 @@ class VistaSignin(Resource):
 
             rol = None
             if rol_nombre:
-                rol = Roles.query.filter_by(nombre=rol_nombre).first()
+                rol = Roles.query.filter(func.lower(Roles.nombre) == rol_nombre.lower()).first()  # 👈 Aquí está el cambio
                 if not rol:
                     return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
 
