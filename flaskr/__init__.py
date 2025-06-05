@@ -20,9 +20,9 @@ from .vistas.vistas import (
 def create_app(config_name='default'):
     app = Flask(__name__)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/lulo'
+     
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_xfD8Iy0eEkbd@ep-nameless-hall-a8iljzhy-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     db.init_app(app)
     migrate = Migrate(app, db)
 
