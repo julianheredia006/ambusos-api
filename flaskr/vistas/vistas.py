@@ -58,13 +58,13 @@ class VistaSignin(Resource):
 
             rol = None
             if rol_nombre:
-                # ✅ Comparación case-insensitive para enums en PostgreSQL
-                rol = Roles.query.filter(cast(Roles.nombre, String).ilike(rol_nombre)).first()
+                rol_nombre_upper = rol_nombre.upper()
+                rol = Roles.query.filter_by(nombre=rol_nombre_upper).first()
                 if not rol:
-                    return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
+                    return {"mensaje": f"El rol '{rol_nombre_upper}' no existe."}, 404
 
             nuevo_Personal = Personal(
-                nombre=nombre_Personal,
+                nombre=nombre_Personal, 
                 email=email_Personal,
                 personal_rol=rol.nombre if rol else None,
             )
@@ -90,6 +90,7 @@ class VistaSignin(Resource):
             logging.error(f"Error inesperado: {e}")
             traceback.print_exc()
             return {"mensaje": f"Error inesperado en el servidor: {str(e)}"}, 500
+
 class VistalogIn(Resource):
     def post(self):
         # Obtener credenciales del usuario
