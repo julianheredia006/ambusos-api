@@ -48,4 +48,9 @@ def create_app(config_name='default'):
     restx_api.add_resource(VistaSignin, '/signin')
     restx_api.add_resource(VistalogIn, '/login')
 
+    # ✅ Ruta raíz para evitar error 404 en Render
+    @app.route('/')
+    def index():
+        return '🚑 Ambusos API está corriendo correctamente. Visita /docs para la documentación Swagger.'
+
     return app
