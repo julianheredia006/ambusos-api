@@ -49,26 +49,24 @@ class VistaSignin(Resource):
                 return {"mensaje": "Nombre, email y contraseña son obligatorios."}, 400
 
             if Personal.query.filter_by(nombre=nombre_Personal).first():
-                logging.error(f"El nombre de usuario {nombre_Personal} ya está registrado.")
                 return {"mensaje": "El nombre de usuario ya está registrado"}, 409
 
             if Personal.query.filter_by(email=email_Personal).first():
-                logging.error(f"El correo electrónico {email_Personal} ya está registrado.")
                 return {"mensaje": "El correo electrónico ya está registrado"}, 409
 
             rol = None
             if rol_nombre:
-                # 🟢 Usamos ilike para que funcione con mayúsculas/minúsculas en PostgreSQL
-                rol = Roles.query.filter(Roles.nombre.ilike(rol_nombre)).first()
+                # 🔥 Convertimos enum a texto para poder aplicar ILIKE correctamente
+                rol = Roles.query.filter(cast(Roles.nombre, String).ilike(rol_nombre)).first()
                 if not rol:
                     return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
 
             nuevo_Personal = Personal(
-                nombre=nombre_Personal, 
+                nombre=nombre_Personal,
                 email=email_Personal,
                 personal_rol=rol.nombre if rol else None,
             )
-            nuevo_Personal.contrasena = contrasena_Personal  # Setter hace hashing
+            nuevo_Personal.contrasena = contrasena_Personal
 
             db.session.add(nuevo_Personal)
             db.session.commit()
@@ -76,18 +74,15 @@ class VistaSignin(Resource):
             return {"mensaje": "Usuario creado exitosamente. Ahora puede iniciar sesión."}, 201
 
         except ValueError as e:
-            logging.error(f"Error al crear la contraseña: {e}")
             traceback.print_exc()
             return {"mensaje": str(e)}, 400
 
         except IntegrityError as e:
-            logging.error(f"Error al crear el usuario: {e}")
             traceback.print_exc()
             db.session.rollback()
             return {"mensaje": "Error de integridad. Verifica los datos ingresados."}, 500
 
         except Exception as e:
-            logging.error(f"Error inesperado: {e}")
             traceback.print_exc()
             return {"mensaje": f"Error inesperado en el servidor: {str(e)}"}, 500
 class VistalogIn(Resource):
