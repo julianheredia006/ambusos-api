@@ -58,10 +58,10 @@ class VistaSignin(Resource):
 
             rol = None
             if rol_nombre:
-                rol_nombre_upper = rol_nombre.upper()
-                rol = Roles.query.filter_by(nombre=rol_nombre_upper).first()
+                # 🟢 Usamos ilike para que funcione con mayúsculas/minúsculas en PostgreSQL
+                rol = Roles.query.filter(Roles.nombre.ilike(rol_nombre)).first()
                 if not rol:
-                    return {"mensaje": f"El rol '{rol_nombre_upper}' no existe."}, 404
+                    return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
 
             nuevo_Personal = Personal(
                 nombre=nombre_Personal, 
@@ -90,7 +90,6 @@ class VistaSignin(Resource):
             logging.error(f"Error inesperado: {e}")
             traceback.print_exc()
             return {"mensaje": f"Error inesperado en el servidor: {str(e)}"}, 500
-
 class VistalogIn(Resource):
     def post(self):
         # Obtener credenciales del usuario
