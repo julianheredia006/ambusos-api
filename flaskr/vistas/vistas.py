@@ -29,60 +29,65 @@ from flask import request
 from flask_restx import Resource
 from sqlalchemy.orm.exc import NoResultFound
 
+import logging
+import traceback
+from flask_restx import Resource
+from flask import request
+from sqlalchemy.exc import IntegrityError
+from flaskr.modelos.modelo import db, Personal, Roles  # Asegúrate de importar Roles correctamente
+
 class VistaSignin(Resource):
     def post(self):
-        # Obtener los datos enviados en el cuerpo de la solicitud
-        nombre_Personal = request.json.get("nombre")
-        email_Personal = request.json.get("email")
-        contrasena_Personal = request.json.get("contrasena")
-        rol_nombre = request.json.get("personal_rol")  # Obtener el nombre del rol, no el ID
-
-        # Verificar que todos los campos necesarios estén presentes
-        if not nombre_Personal or not email_Personal or not contrasena_Personal:
-            return {"mensaje": "Nombre, email y contraseña son obligatorios."}, 400
-        
-        # Comprobar si el nombre ya está registrado
-        if Personal.query.filter_by(nombre=nombre_Personal).first():
-            logging.error(f"El nombre de usuario {nombre_Personal} ya está registrado.")
-            return {"mensaje": "El nombre de usuario ya está registrado"}, 409
-        
-        # Comprobar si el correo electrónico ya está registrado
-        if Personal.query.filter_by(email=email_Personal).first():
-            logging.error(f"El correo electrónico {email_Personal} ya está registrado.")
-            return {"mensaje": "El correo electrónico ya está registrado"}, 409
-
-        # Validar si el nombre del rol existe en la tabla Roles
-        if rol_nombre:
-            rol = Roles.query.filter_by(nombre=rol_nombre).first()  # Buscar por nombre de rol
-            if not rol:
-                return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
-        else:
-            rol = None  # Si no se pasa un rol, lo dejamos como None
-
-        # Crear el nuevo usuario
         try:
+            nombre_Personal = request.json.get("nombre")
+            email_Personal = request.json.get("email")
+            contrasena_Personal = request.json.get("contrasena")
+            rol_nombre = request.json.get("personal_rol")
+
+            if not nombre_Personal or not email_Personal or not contrasena_Personal:
+                return {"mensaje": "Nombre, email y contraseña son obligatorios."}, 400
+
+            if Personal.query.filter_by(nombre=nombre_Personal).first():
+                logging.error(f"El nombre de usuario {nombre_Personal} ya está registrado.")
+                return {"mensaje": "El nombre de usuario ya está registrado"}, 409
+
+            if Personal.query.filter_by(email=email_Personal).first():
+                logging.error(f"El correo electrónico {email_Personal} ya está registrado.")
+                return {"mensaje": "El correo electrónico ya está registrado"}, 409
+
+            rol = None
+            if rol_nombre:
+                rol = Roles.query.filter_by(nombre=rol_nombre).first()
+                if not rol:
+                    return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
+
             nuevo_Personal = Personal(
                 nombre=nombre_Personal, 
                 email=email_Personal,
-                personal_rol=rol.nombre if rol else None,  # Asignar el nombre del rol encontrado, no el nombre directamente
+                personal_rol=rol.nombre if rol else None,
             )
-            nuevo_Personal.contrasena = contrasena_Personal  # Esto llamará al setter que hace el hash
+            nuevo_Personal.contrasena = contrasena_Personal  # Setter hace hashing
+
+            db.session.add(nuevo_Personal)
+            db.session.commit()
+
+            return {"mensaje": "Usuario creado exitosamente. Ahora puede iniciar sesión."}, 201
+
         except ValueError as e:
             logging.error(f"Error al crear la contraseña: {e}")
+            traceback.print_exc()
             return {"mensaje": str(e)}, 400
 
-        # Agregar el nuevo usuario a la base de datos
-        db.session.add(nuevo_Personal)
-
-        try:
-            db.session.commit()
         except IntegrityError as e:
             logging.error(f"Error al crear el usuario: {e}")
+            traceback.print_exc()
             db.session.rollback()
-            return {"mensaje": "Error al crear el usuario. Intenta nuevamente."}, 500
+            return {"mensaje": "Error de integridad. Verifica los datos ingresados."}, 500
 
-        # Retornar una respuesta exitosa
-        return {"mensaje": "Usuario creado exitosamente. Ahora puede iniciar sesión."}, 201
+        except Exception as e:
+            logging.error(f"Error inesperado: {e}")
+            traceback.print_exc()
+            return {"mensaje": f"Error inesperado en el servidor: {str(e)}"}, 500
 
 class VistalogIn(Resource):
     def post(self):
