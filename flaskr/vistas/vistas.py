@@ -36,7 +36,7 @@ from flask import request
 from sqlalchemy.exc import IntegrityError
 from flaskr.modelos.modelo import db, Personal, Roles  # Asegúrate de importar Roles correctamente
 from sqlalchemy import func  # 👈 Asegúrate de tener esto 
-
+from sqlalchemy import cast, String 
 class VistaSignin(Resource):
     def post(self):
         try:
@@ -58,12 +58,13 @@ class VistaSignin(Resource):
 
             rol = None
             if rol_nombre:
-                rol = Roles.query.filter(func.lower(Roles.nombre) == rol_nombre.lower()).first()  # 👈 Aquí está el cambio
+                # ✅ Comparación case-insensitive para enums en PostgreSQL
+                rol = Roles.query.filter(cast(Roles.nombre, String).ilike(rol_nombre)).first()
                 if not rol:
                     return {"mensaje": f"El rol '{rol_nombre}' no existe."}, 404
 
             nuevo_Personal = Personal(
-                nombre=nombre_Personal, 
+                nombre=nombre_Personal,
                 email=email_Personal,
                 personal_rol=rol.nombre if rol else None,
             )
@@ -89,7 +90,6 @@ class VistaSignin(Resource):
             logging.error(f"Error inesperado: {e}")
             traceback.print_exc()
             return {"mensaje": f"Error inesperado en el servidor: {str(e)}"}, 500
-
 class VistalogIn(Resource):
     def post(self):
         # Obtener credenciales del usuario
