@@ -37,14 +37,18 @@ class AmbulanciaSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class PersonalSchema(SQLAlchemyAutoSchema):
-    rol = fields.String(attribute="rol.nombre", dump_only=True)
+from marshmallow import fields
+
+class PersonalSchema(ma.SQLAlchemyAutoSchema):
+    rol = fields.Method("get_rol")  # 👈 método personalizado
+
+    def get_rol(self, obj):
+        return obj.rol.value if obj.rol else None
 
     class Meta:
         model = Personal
+        include_fk = True
         load_instance = True
-        include_relationships = True
-
 
 class FormularioAccidenteSchema(SQLAlchemyAutoSchema):
     genero = fields.String()
