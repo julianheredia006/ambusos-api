@@ -106,18 +106,39 @@ class Hospitales(db.Model):
 
 class Ambulancia(db.Model):
     __tablename__ = 'ambulancia'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     placa = db.Column(db.String(10), nullable=False, unique=True)
     categoria_ambulancia = db.Column(CategoriaAmbulanciaEnumType, nullable=False)
-    hospital_id = db.Column(db.Integer, db.ForeignKey('hospitales.id', ondelete='SET NULL'))
 
+    # FK → hospitales.id
+    hospital_id = db.Column(
+        db.Integer,
+        db.ForeignKey('hospitales.id', ondelete='SET NULL')
+    )
+
+    # 🔗 RELACIÓN con Hospitales
+    hospital = db.relationship(
+        'Hospitales',           # modelo destino
+        backref='ambulancias',  # acceso inverso
+        lazy='joined',          # carga con JOIN para traer el hospital de una vez
+        uselist=False
+    )
+
+    # ---------- Serializador ----------
     def to_dict(self):
         return {
             "id": self.id,
             "placa": self.placa,
             "categoria_ambulancia": self.categoria_ambulancia.value,
-            "hospital_id": self.hospital_id
+            "hospital_id": self.hospital_id,
+            # anidamos el hospital completo (o None si no hay)
+            "hospital": {
+                "id": self.hospital.id,
+                "nombre": self.hospital.nombre
+            } if self.hospital else None
         }
+
 
 class AsignacionAmbulancia(db.Model):
     __tablename__ = 'asignacion_ambulancia'

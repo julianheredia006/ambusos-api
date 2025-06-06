@@ -20,22 +20,18 @@ class RolesSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
 class AmbulanciaSchema(SQLAlchemyAutoSchema):
-    # Muestra solo el valor del enum
-    categoria_ambulancia = fields.Method(
-        serialize='get_categoria'
-    )
-    hospital = fields.Nested('HospitalSchema')   # ⬅️  hospital anidado
-    hospital_id = fields.Int()                   # (por si lo sigues usando)
+    categoria_ambulancia = fields.Method(serialize='get_categoria')
+    hospital = fields.Nested('HospitalSchema')  # 👈 hospital anidado
+    hospital_id = fields.Int()  # 👈 sigue incluido por compatibilidad
 
     def get_categoria(self, obj):
         return obj.categoria_ambulancia.value
 
     class Meta:
         model = Ambulancia
-        include_fk = True             # hospital_id
-        include_relationships = True  # hospital
+        include_fk = True
+        include_relationships = True
         load_instance = True
-
 
 class PersonalSchema(SQLAlchemyAutoSchema):
     rol = fields.String(attribute="rol.nombre", dump_only=True)
