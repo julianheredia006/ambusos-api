@@ -48,19 +48,20 @@ class FormularioAccidenteSchema(SQLAlchemyAutoSchema):
 
     @validates('genero')
     def validate_genero(self, value):
-        if value not in [g.value for g in GeneroEnum]:
-            raise ValidationError(f"Género no válido. Debe ser uno de: {', '.join(g.value for g in GeneroEnum)}")
+        valid = [g.value for g in GeneroEnum]
+        if value not in valid:
+            raise ValidationError(f"Género no válido. Debe ser uno de: {', '.join(valid)}")
 
     @validates('estado')
     def validate_estado(self, value):
-        if value not in [e.value for e in EstadoAccidenteEnum]:
-            raise ValidationError(f"Estado no válido. Debe ser uno de: {', '.join(e.value for e in EstadoAccidenteEnum)}")
+        valid = [e.value for e in EstadoAccidenteEnum]
+        if value not in valid:
+            raise ValidationError(f"Estado no válido. Debe ser uno de: {', '.join(valid)}")
 
     class Meta:
         model = FormularioAccidente
         include_relationships = True
         load_instance = True
-
 
 class ReporteViajesSchema(SQLAlchemyAutoSchema):
     accidente = fields.Nested(FormularioAccidenteSchema)

@@ -162,7 +162,6 @@ class AsignacionAmbulancia(db.Model):
             "fecha_asignacion": self.fecha_asignacion.isoformat() if self.fecha_asignacion else None,
             "ambulancia": self.ambulancia.to_dict() if self.ambulancia else None
         }
-
 class FormularioAccidente(db.Model):
     __tablename__ = 'formularioaccidente'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -184,16 +183,15 @@ class FormularioAccidente(db.Model):
             "nombre": self.nombre,
             "apellido": self.apellido,
             "numero_documento": self.numero_documento,
-            "genero": self.genero.value,
+            "genero": self.genero.value if self.genero else None,
             "seguro_medico": self.seguro_medico,
             "reporte_accidente": self.reporte_accidente,
             "fecha_reporte": self.fecha_reporte.isoformat() if self.fecha_reporte else None,
             "ubicacion": self.ubicacion,
             "EPS": self.EPS,
-            "estado": self.estado.value,
+            "estado": self.estado.value if self.estado else None,
             "ambulancia_id": self.ambulancia_id
         }
-
 class ReporteViajes(db.Model):
     __tablename__ = 'reporte_viajes'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

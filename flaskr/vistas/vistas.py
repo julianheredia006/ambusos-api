@@ -244,6 +244,8 @@ class VistaFormularioAccidente(Resource):
             formularios = FormularioAccidente.query.all()
             return [formulario.to_dict() for formulario in formularios], 200
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return {"mensaje": f"Error al obtener los formularios: {str(e)}"}, 500
 
     def post(self):
@@ -252,19 +254,21 @@ class VistaFormularioAccidente(Resource):
                 nombre=request.json.get('nombre', ''),
                 apellido=request.json.get('apellido', ''),
                 numero_documento=request.json.get('numero_documento', None),
-                genero=request.json.get('genero', ''),
+                genero=request.json.get('genero', None),
                 seguro_medico=request.json.get('seguro_medico', None),
                 reporte_accidente=request.json.get('reporte_accidente', ''),
                 fecha_reporte=request.json.get('fecha_reporte', None),
                 ubicacion=request.json.get('ubicacion', ''),
-                EPS=request.json.get('EPS', ''),  # Nombre correcto
-                estado=request.json.get('estado', ''),
+                EPS=request.json.get('EPS', ''),
+                estado=request.json.get('estado', None),
                 ambulancia_id=request.json.get('ambulancia_id', None)
             )
             db.session.add(nuevo_formulario)
             db.session.commit()
             return nuevo_formulario.to_dict(), 201
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return {"mensaje": f"Error al crear el formulario: {str(e)}"}, 500
 
     def put(self, id):
@@ -288,6 +292,8 @@ class VistaFormularioAccidente(Resource):
             db.session.commit()
             return formulario.to_dict(), 200
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return {"mensaje": f"Error al actualizar el formulario: {str(e)}"}, 500
 
     def delete(self, id):
@@ -300,6 +306,8 @@ class VistaFormularioAccidente(Resource):
             db.session.commit()
             return {"mensaje": "Formulario eliminado."}, 204
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return {"mensaje": f"Error al eliminar el formulario: {str(e)}"}, 500
 
 class VistaReporteViajes(Resource):
