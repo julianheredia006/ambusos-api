@@ -103,20 +103,35 @@ class Hospitales(db.Model):
             "capacidad_atencion": self.capacidad_atencion,
             "categoria": self.categoria
         }
-
 class Ambulancia(db.Model):
     __tablename__ = 'ambulancia'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     placa = db.Column(db.String(10), nullable=False, unique=True)
     categoria_ambulancia = db.Column(CategoriaAmbulanciaEnumType, nullable=False)
-    hospital_id = db.Column(db.Integer, db.ForeignKey('hospitales.id', ondelete='SET NULL'))
+
+    # FK → hospitales.id
+    hospital_id = db.Column(
+        db.Integer,
+        db.ForeignKey('hospitales.id', ondelete='SET NULL')
+    )
+
+    # ⬇️  RELACIÓN QUE FALTABA
+    hospital = db.relationship(
+        'Hospitales',              # modelo destino
+        backref='ambulancias',     # acceso inverso
+        lazy='joined',             # carga inmediata con JOIN
+        uselist=False
+    )
 
     def to_dict(self):
         return {
             "id": self.id,
             "placa": self.placa,
             "categoria_ambulancia": self.categoria_ambulancia.value,
-            "hospital_id": self.hospital_id
+            "hospital_id": self.hospital_id,
+            # incluir el nombre del hospital para consultas rápidas
+            "hospital_nombre": self.hospital.nombre if self.hospital else None
         }
 
 class AsignacionAmbulancia(db.Model):

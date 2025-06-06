@@ -19,18 +19,21 @@ class RolesSchema(SQLAlchemyAutoSchema):
         model = Roles
         load_instance = True
 
-
 class AmbulanciaSchema(SQLAlchemyAutoSchema):
-    categoria_ambulancia = fields.String()
+    # Muestra solo el valor del enum
+    categoria_ambulancia = fields.Method(
+        serialize='get_categoria'
+    )
+    hospital = fields.Nested('HospitalSchema')   # ⬅️  hospital anidado
+    hospital_id = fields.Int()                   # (por si lo sigues usando)
 
-    @validates('categoria_ambulancia')
-    def validate_categoria_ambulancia(self, value):
-        if value not in [cat.value for cat in CategoriaAmbulanciaEnum]:
-            raise ValidationError(f"Categoría no válida. Debe ser una de: {', '.join(cat.value for cat in CategoriaAmbulanciaEnum)}")
+    def get_categoria(self, obj):
+        return obj.categoria_ambulancia.value
 
     class Meta:
         model = Ambulancia
-        include_relationships = True
+        include_fk = True             # hospital_id
+        include_relationships = True  # hospital
         load_instance = True
 
 
