@@ -201,9 +201,7 @@ class VistaPersonal(Resource):
         return {"mensaje": "Usuario eliminado."}, 204
 class VistaAmbulancias(Resource):
     def get(self):
-        # Incluye el hospital relacionado
-        ambulancias = Ambulancia.query.options(joinedload(Ambulancia.hospital)).all()
-        return ambulancias_schema.dump(ambulancias), 200
+        return ambulancias_schema.dump(Ambulancia.query.all()), 200
 
     def post(self):
         nueva_ambulancia = Ambulancia(
@@ -222,7 +220,6 @@ class VistaAmbulancias(Resource):
 
         ambulancia.placa = request.json.get('placa', ambulancia.placa)
         ambulancia.categoria_ambulancia = request.json.get('categoria_ambulancia', ambulancia.categoria_ambulancia)
-        ambulancia.hospital_id = request.json.get('hospital_id', ambulancia.hospital_id)
         db.session.commit()
         return ambulancia_schema.dump(ambulancia), 200
 
@@ -234,6 +231,7 @@ class VistaAmbulancias(Resource):
         db.session.delete(ambulancia)
         db.session.commit()
         return {"mensaje": "Ambulancia eliminada."}, 204
+
 
 # Vista para gestionar los formularios de accidente
 
