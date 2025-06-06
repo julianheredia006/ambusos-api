@@ -1,3 +1,4 @@
+from flask_marshmallow import Marshmallow
 from marshmallow import fields, validates, ValidationError
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from .modelo import (
@@ -14,33 +15,30 @@ from .modelo import (
     Hospitales
 )
 
+# Inicializar Marshmallow
+ma = Marshmallow()
+
 class RolesSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Roles
         load_instance = True
 
 class AmbulanciaSchema(SQLAlchemyAutoSchema):
-    # Muestra solo el valor del enum
-    categoria_ambulancia = fields.Method(
-        serialize='get_categoria'
-    )
-    hospital = fields.Nested('HospitalSchema')   # ⬅️  hospital anidado
-    hospital_id = fields.Int()                   # (por si lo sigues usando)
+    categoria_ambulancia = fields.Method(serialize='get_categoria')
+    hospital = fields.Nested('HospitalSchema')
+    hospital_id = fields.Int()
 
     def get_categoria(self, obj):
         return obj.categoria_ambulancia.value
 
     class Meta:
         model = Ambulancia
-        include_fk = True             # hospital_id
-        include_relationships = True  # hospital
+        include_fk = True
+        include_relationships = True
         load_instance = True
 
-
-from marshmallow import fields
-
-class PersonalSchema(ma.SQLAlchemyAutoSchema):
-    rol = fields.Method("get_rol")  # 👈 método personalizado
+class PersonalSchema(ma.SQLAlchemyAutoSchema):  # ahora sí ma está definido
+    rol = fields.Method("get_rol")
 
     def get_rol(self, obj):
         return obj.rol.value if obj.rol else None
@@ -69,7 +67,6 @@ class FormularioAccidenteSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
-
 class ReporteViajesSchema(SQLAlchemyAutoSchema):
     accidente = fields.Nested(FormularioAccidenteSchema)
     accidente_id = fields.Int()
@@ -79,13 +76,11 @@ class ReporteViajesSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
-
 class HospitalSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Hospitales
         include_relationships = True
         load_instance = True
-
 
 class AsignacionAmbulanciaSchema(SQLAlchemyAutoSchema):
     persona = fields.Nested(PersonalSchema)

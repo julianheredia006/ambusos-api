@@ -3,9 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from flask_restx import Api as RestXApi  # 👈 SOLO RESTX
+from flask_restx import Api as RestXApi
 
 from .modelos.modelo import db, Personal
+from .modelos.esquemas import ma  # ✅ Importar ma correctamente
 from .vistas.vistas import (
     VistaAmbulancias,
     VistaFormularioAccidente,
@@ -24,16 +25,15 @@ def create_app(config_name='default'):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_xfD8Iy0eEkbd@ep-nameless-hall-a8iljzhy-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
+    ma.init_app(app)  # ✅ Inicializa Marshmallow aquí
     migrate = Migrate(app, db)
 
-    # Configuración de JWT
+    # JWT
     app.config['JWT_SECRET_KEY'] = 'supersecretkey'
     jwt = JWTManager(app)
 
-    # ✅ Configuración explícita de CORS
+    # CORS
     CORS(app, resources={r"/*": {"origins": "*"}})
-    # Si quieres permitir solo tu frontend local:
-    # CORS(app, resources={r"/*": {"origins": "http://localhost:58814"}})
 
     # Swagger RESTX
     restx_api = RestXApi(app,
@@ -42,7 +42,7 @@ def create_app(config_name='default'):
                          description='Swagger generado con Flask-RESTX',
                          doc='/docs')
 
-    # Registro de vistas (todas deben heredar de flask_restx.Resource)
+    # Registro de rutas
     restx_api.add_resource(VistaFormularioAccidente, '/accidentes', '/accidentes/<int:id>')
     restx_api.add_resource(VistaPersonal, '/personal', '/personal/<int:id>')
     restx_api.add_resource(VistaAmbulancias, '/ambulancias', '/ambulancias/<int:id>')
@@ -52,7 +52,6 @@ def create_app(config_name='default'):
     restx_api.add_resource(VistaSignin, '/signin')
     restx_api.add_resource(VistalogIn, '/login')
 
-    # Ruta raíz
     @app.route('/')
     def index():
         return '🚑 Ambusos API está corriendo correctamente. Visita /docs para la documentación Swagger.'
